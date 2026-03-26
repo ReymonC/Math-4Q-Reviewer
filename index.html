@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math 7 Mastery Reviewer</title>
+    <style>
+        :root {
+            --primary: #4F46E5; --primary-hover: #4338CA;
+            --success: #10B981; --danger: #EF4444;
+            --bg: #F3F4F6; --card-bg: #FFFFFF;
+            --text-main: #1F2937; --text-muted: #6B7280;
+        }
+
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
+        body { background-color: var(--bg); color: var(--text-main); line-height: 1.6; }
+
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        
+        header { text-align: center; margin-bottom: 30px; padding: 20px; background: var(--primary); color: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header h1 { font-size: 2rem; margin-bottom: 5px; }
+        header p { font-size: 1.1rem; opacity: 0.9; }
+
+        #dashboard { display: flex; flex-direction: column; gap: 15px; }
+        .topic-card { background: var(--card-bg); padding: 20px; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--primary); }
+        .topic-info h3 { font-size: 1.2rem; margin-bottom: 5px; }
+        .levels { display: flex; gap: 10px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; transition: all 0.2s; font-size: 0.9rem; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-locked { background: #E5E7EB; color: #9CA3AF; cursor: not-allowed; }
+        .btn-completed { background: var(--success); color: white; }
+
+        #quiz-area { display: none; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .quiz-header { display: flex; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid var(--bg); }
+        .progress-bar { width: 100%; height: 10px; background: #E5E7EB; border-radius: 5px; margin-top: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--success); width: 0%; transition: width 0.3s; }
+        
+        .question-text { font-size: 1.3rem; margin-bottom: 25px; font-weight: 500; }
+        
+        .mcq-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .mcq-btn { padding: 15px; border: 2px solid var(--primary); background: white; color: var(--primary); border-radius: 8px; font-size: 1.1rem; cursor: pointer; transition: 0.2s; text-align: center; }
+        .mcq-btn:hover { background: var(--primary); color: white; }
+        
+        .sa-container { display: flex; flex-direction: column; gap: 10px; max-width: 400px; }
+        .sa-input, .six-input, .six-select { padding: 12px; border: 2px solid #D1D5DB; border-radius: 8px; font-size: 1.1rem; outline: none; transition: border 0.2s; }
+        .sa-input:focus, .six-input:focus, .six-select:focus { border-color: var(--primary); }
+        
+        .six-step-box { background: #F9FAFB; border: 1px solid #E5E7EB; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .step-row { margin-bottom: 15px; }
+        .step-row label { font-weight: bold; display: block; margin-bottom: 5px; color: var(--primary); }
+        .step-row div { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        .submit-btn { background: var(--success); color: white; padding: 12px 25px; font-size: 1.1rem; margin-top: 20px; width: 100%; }
+        .submit-btn:hover { background: #059669; }
+
+        #rationale-box { display: none; margin-top: 20px; padding: 20px; border-radius: 8px; color: white; animation: slideIn 0.3s ease-out; }
+        .rationale-correct { background: var(--success); }
+        .rationale-wrong { background: var(--danger); }
+        .rationale-header { font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; }
+        #next-btn { background: rgba(0,0,0,0.2); margin-top: 15px; }
+        #next-btn:hover { background: rgba(0,0,0,0.4); }
+
+        .home-btn { background: var(--text-muted); color: white; margin-bottom: 20px; display: none; }
+        .home-btn:hover { background: #4B5563; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Math 7 Dynamic Reviewer</h1>
+        <p>Adaptive problem generation across all operations</p>
+    </header>
+
+    <button class="btn home-btn" id="btn-home" onclick="goHome()">← Back to Topics</button>
+
+    <div id="dashboard"></div>
+
+    <div id="quiz-area">
+        <div class="quiz-header">
+            <div>
+                <h2 id="qh-topic">Topic Name</h2>
+                <div style="font-size: 0.9rem; color: var(--text-muted);">Difficulty: <span id="qh-diff">Beginner</span></div>
+            </div>
+            <div style="text-align: right;">
+                <h2 id="qh-score">Score: 0 / 100</h2>
+                <div style="font-size: 0.9rem; color: var(--text-muted);" id="timer-display">Time: 0s</div>
+            </div>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="qh-progress"></div></div>
+        
+        <div id="question-container" style="margin-top: 30px;">
+            <div class="question-text" id="q-text"></div>
+            <div id="q-input-area"></div>
+        </div>
+
+        <button class="btn submit-btn" id="btn-submit" onclick="submitAnswer()">Submit Answer</button>
+
+        <div id="rationale-box">
+            <div class="rationale-header" id="r-status"></div>
+            <div id="r-text"></div>
+            <button class="btn" id="next-btn" onclick="handleNext()">Next Question →</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ==========================================
+// UTILITIES & ALGORITHMS
+// ==========================================
+const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const randVar = () => ['a','b','c','m','n','p','x','y','z'][rand(0,8)];
+const shuffle = (array) => { for (let i = array.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [array[i], array[j]] = [array[j], array[i]]; } return array; };
+const cleanAlg = (str) => str.replace(/\s+/g, '').toLowerCase();
+
+// ==========================================
+// STATE MANAGEMENT
+// ==========================================
+let progress = JSON.parse(localStorage.getItem('math7Progress')) || {};
+let currentTopicId = null;
+let currentDiff = null;
+let sessionScore = 0;
+let timeElapsed = 0;
+let timerInterval = null;
+let currentQuestion = null;
+let currentPool = []; // Spaced repetition pool holding sub-types
+
+const topics = [
+    { id: 't1', name: 'Identifying Algebraic Expression' },
+    { id: 't2', name: 'Identifying Like and Unlike Terms' },
+    { id: 't3', name: 'Substituting Variables with Given Values' },
+    { id: 't4', name: 'Using Properties of Equation (All Operations)' },
+    { id: 't5', name: 'Translating Word Problems to Equations' },
+    { id: 't6', name: 'Translating and Solving Word Problems' },
+    { id: 't7', name: 'Translating and Solving Real-Life Word Problems' }
+];
+
+// Subtypes ensure ALL concepts (+, -, *, /) are tested evenly. 
+const typePools = {
+    t1: { beg: ['var', 'coef', 'const_pos', 'const_neg'], adv: ['vars_poly', 'coefs_poly', 'const_poly', 'coefs_hidden'] },
+    t2: { beg: ['like_basic', 'unlike_var', 'like_one', 'unlike_var2'], adv: ['like_comm', 'unlike_exp', 'like_exp', 'unlike_mixed'] },
+    t3: { beg: ['add', 'sub', 'mul', 'div'], adv: ['quad', 'two_var_add', 'two_var_sub', 'distrib'] },
+    t4: { beg: ['add', 'sub', 'mul', 'div'], adv: ['var_both_add', 'var_both_sub', 'distrib', 'fraction'] },
+    t5: { beg: ['add', 'sub', 'mul', 'div'], adv: ['consec_sum', 'mul_add', 'mul_sub', 'quotient_sum'] },
+    t6: { beg: ['add_solve', 'sub_solve', 'mul_add_solve', 'mul_sub_solve'], adv: ['consec3', 'consec2', 'mul_add_6', 'mul_sub_6'] },
+    t7: { beg: ['profit_sub', 'profit_add', 'save_money', 'save_money2'], adv: ['age_twice', 'age_thrice', 'age_twice_diff', 'age_thrice_diff'] }
+};
+
+// FACTORY GENERATOR: Generates completely fresh mathematical problems based on sub-type
+const questionFactory = (topic, diff, type) => {
+    let q = {}, v1, v2, v3, c1, c2, c3, ans, x, eq1, eq2, eAns, opts;
+
+    switch(topic) {
+        case 't1': // Identifying Algebraic Expression (Strictly Var, Coef, Const)
+            v1 = randVar(); c1 = rand(2, 12); c2 = rand(1, 20);
+            if (diff === 'beg') {
+                if (type === 'var') {
+                    q = { q: `Which is the variable in the expression: ${c1}${v1} + ${c2}?`, type: 'sa', a: v1, rat: `Variables are letters representing unknowns. Here, it is ${v1}.`, minTime: 10 };
+                } else if (type === 'coef') {
+                    q = { q: `Which is the numerical coefficient in the expression: ${c1}${v1} - ${c2}?`, type: 'sa', a: c1.toString(), rat: `The coefficient is the number multiplied by the variable. Here, it is ${c1}.`, minTime: 10 };
+                } else if (type === 'const_pos') {
+                    q = { q: `Which is the constant in the expression: ${v1} + ${c2}?`, type: 'sa', a: c2.toString(), rat: `The constant is the standalone number. Here, it is ${c2}.`, minTime: 10 };
+                } else {
+                    q = { q: `Which is the constant in the expression: ${c1}${v1} - ${c2}?`, type: 'sa', a: `-${c2}`, rat: `The constant includes its sign. Here, it is -${c2}.`, minTime: 12 };
+                }
+            } else { // Adv
+                v1 = 'x'; v2 = 'y'; v3 = 'z'; 
+                c1 = rand(2,7); c2 = rand(2,7); c3 = rand(5,20);
+                if (type === 'vars_poly') {
+                    q = { q: `List all variables in the expression (comma separated, alphabetical): ${c1}${v1} - ${c2}${v2} + ${v3} + ${c3}`, type: 'sa', a: `${v1},${v2},${v3}`, rat: `The variables are all the letters: ${v1}, ${v2}, and ${v3}.`, minTime: 15 };
+                } else if (type === 'coefs_poly') {
+                    q = { q: `List the numerical coefficients (left to right, comma separated): ${c1}${v1} + ${c2}${v2} - ${v3}`, type: 'sa', a: `${c1},${c2},-1`, rat: `The coefficients are ${c1}, ${c2}, and -1 (since -${v3} implies -1).`, minTime: 20 };
+                } else if (type === 'const_poly') {
+                    q = { q: `Which is the constant in the expression: ${v1}² + ${c1}${v1} - ${c3}?`, type: 'sa', a: `-${c3}`, rat: `The standalone number with its sign is -${c3}.`, minTime: 10 };
+                } else {
+                    q = { q: `Which is the numerical coefficient of the first term: -${v1} + ${c1}${v2}?`, type: 'sa', a: `-1`, rat: `A negative variable alone implies a coefficient of -1.`, minTime: 15 };
+                }
+            }
+            break;
+
+        case 't2': // Identifying Like and Unlike Terms
+            v1 = randVar(); v2 = randVar(); while(v1===v2) v2=randVar();
+            c1 = rand(2,9); c2 = rand(2,9);
+            if (diff === 'beg') {
+                if (type === 'like_basic') q = { q: `Are ${c1}${v1} and ${c2}${v1} Like or Unlike terms?`, a: 'Like', rat: 'They have the exact same variable.', minTime: 10 };
+                else if (type === 'unlike_var') q = { q: `Are ${c1}${v1} and ${c2}${v2} Like or Unlike terms?`, a: 'Unlike', rat: 'They have different variables.', minTime: 10 };
+                else if (type === 'like_one') q = { q: `Are ${v1} and ${c1}${v1} Like or Unlike terms?`, a: 'Like', rat: 'Both share the same variable, even if one has no visible coefficient.', minTime: 10 };
+                else q = { q: `Are ${c1}${v1} and ${c1}${v2} Like or Unlike terms?`, a: 'Unlike', rat: 'Even with the same coefficient, the variables are different.', minTime: 10 };
+                
+                q.type = 'mcq'; q.choices = ['Like', 'Unlike'];
+            } else {
+                if (type === 'like_comm') q = { q: `Are ${c1}${v1}${v2} and ${c2}${v2}${v1} Like or Unlike terms?`, a: 'Like', rat: 'Order of variables does not matter in multiplication.', minTime: 12 };
+                else if (type === 'unlike_exp') q = { q: `Are ${c1}${v1}² and ${c2}${v1}³ Like or Unlike terms?`, a: 'Unlike', rat: 'The variables match, but the exponents are different.', minTime: 12 };
+                else if (type === 'like_exp') q = { q: `Are -${c1}${v1}² and ${c2}${v1}² Like or Unlike terms?`, a: 'Like', rat: 'Both have the exact same variable and exponent.', minTime: 12 };
+                else q = { q: `Are ${c1}${v1}²${v2} and ${c2}${v1}${v2}² Like or Unlike terms?`, a: 'Unlike', rat: 'The exponents are on different variables.', minTime: 15 };
+                
+                q.type = 'mcq'; q.choices = ['Like', 'Unlike'];
+            }
+            break;
+
+        case 't3': // Substituting Variables
+            v1 = randVar(); x = rand(3, 9); c1 = rand(2, 8); c2 = rand(2, 8);
+            if (diff === 'beg') {
+                if (type === 'add') q = { q: `Evaluate ${v1} + ${c1} when ${v1} = ${x}`, a: (x+c1).toString(), rat: `${x} + ${c1} = ${x+c1}` };
+                else if (type === 'sub') { let bg = x+c1; q = { q: `Evaluate ${bg} - ${v1} when ${v1} = ${x}`, a: (bg-x).toString(), rat: `${bg} - ${x} = ${bg-x}` }; }
+                else if (type === 'mul') q = { q: `Evaluate ${c1}${v1} when ${v1} = ${x}`, a: (c1*x).toString(), rat: `${c1} × ${x} = ${c1*x}` };
+                else { let prod = x*c1; q = { q: `Evaluate ${v1} / ${c1} when ${v1} = ${prod}`, a: (prod/c1).toString(), rat: `${prod} ÷ ${c1} = ${x}` }; }
+                q.type = 'sa'; q.minTime = 15;
+            } else {
+                let y = rand(2, 5); v2 = randVar(); while(v1===v2) v2=randVar();
+                if (type === 'quad') q = { q: `Evaluate ${v1}² + ${c1} when ${v1} = ${x}`, a: (x*x+c1).toString(), rat: `${x}² = ${x*x}. Then ${x*x} + ${c1} = ${x*x+c1}` };
+                else if (type === 'two_var_add') q = { q: `Evaluate ${c1}${v1} + ${c2}${v2} when ${v1}=${x}, ${v2}=${y}`, a: (c1*x+c2*y).toString(), rat: `(${c1}×${x}) + (${c2}×${y}) = ${c1*x} + ${c2*y} = ${c1*x+c2*y}` };
+                else if (type === 'two_var_sub') q = { q: `Evaluate ${c1}${v1} - ${c2}${v2} when ${v1}=${x+2}, ${v2}=${y}`, a: (c1*(x+2)-c2*y).toString(), rat: `(${c1}×${x+2}) - (${c2}×${y}) = ${c1*(x+2)} - ${c2*y} = ${c1*(x+2)-c2*y}` };
+                else q = { q: `Evaluate ${c1}(${v1} - ${y}) when ${v1} = ${x+y}`, a: (c1*x).toString(), rat: `Inside parenthesis: ${x+y} - ${y} = ${x}. Multiply by ${c1} = ${c1*x}` };
+                q.type = 'sa'; q.minTime = 25;
+            }
+            break;
+
+        case 't4': // Using Properties of Equation
+            x = rand(4, 15); c1 = rand(3, 12); c2 = rand(2, 6);
+            if (diff === 'beg') {
+                if (type === 'add') q = { q: `Solve for x: x + ${c1} = ${x+c1}`, a: x.toString(), rat: `Subtract ${c1} from both sides: ${x+c1} - ${c1} = ${x}` };
+                else if (type === 'sub') q = { q: `Solve for x: x - ${c1} = ${x-c1}`, a: x.toString(), rat: `Add ${c1} to both sides: ${x-c1} + ${c1} = ${x}` };
+                else if (type === 'mul') q = { q: `Solve for x: ${c2}x = ${c2*x}`, a: x.toString(), rat: `Divide both sides by ${c2}: ${c2*x} / ${c2} = ${x}` };
+                else q = { q: `Solve for x: x / ${c2} = ${x}`, a: (x*c2).toString(), rat: `Multiply both sides by ${c2}: ${x} × ${c2} = ${x*c2}` };
+                q.type = 'sa'; q.minTime = 20;
+            } else {
+                if (type === 'var_both_add') {
+                    // ax + b = cx + d => (a-c)x = d-b
+                    let c = rand(1, 3); let a = c + rand(1, 3); let b = rand(2, 10); let d = (a-c)*x + b;
+                    q = { q: `Solve for x: ${a}x + ${b} = ${c===1?'':c}x + ${d}`, a: x.toString(), rat: `Subtract ${c}x from both sides: ${a-c}x + ${b} = ${d}. Subtract ${b}: ${a-c}x = ${d-b}. Divide by ${a-c}.` };
+                } else if (type === 'var_both_sub') {
+                    // ax - b = cx + d
+                    let c = rand(1, 3); let a = c + rand(1, 3); let b = rand(2, 10); let d = (a-c)*x - b;
+                    while(d <= 0) { b = rand(2, 10); d = (a-c)*x - b; } // Ensure positive d
+                    q = { q: `Solve for x: ${a}x - ${b} = ${c===1?'':c}x + ${d}`, a: x.toString(), rat: `Subtract ${c}x from both sides: ${a-c}x - ${b} = ${d}. Add ${b}: ${a-c}x = ${d+b}. Divide by ${a-c}.` };
+                } else if (type === 'distrib') {
+                    // a(x + b) = c
+                    let a = rand(2, 5); let b = rand(2, 8); let c = a*(x+b);
+                    q = { q: `Solve for x: ${a}(x + ${b}) = ${c}`, a: x.toString(), rat: `Divide by ${a} to get x + ${b} = ${c/a}. Subtract ${b} to get x = ${x}.` };
+                } else {
+                    // x/a - b = c
+                    let a = rand(2, 5); let b = rand(2, 8); let c = rand(2, 8); x = a*(c+b);
+                    q = { q: `Solve for x: x / ${a} - ${b} = ${c}`, a: x.toString(), rat: `Add ${b} to both sides: x / ${a} = ${c+b}. Multiply by ${a}: x = ${x}.` };
+                }
+                q.type = 'sa'; q.minTime = 40;
+            }
+            break;
+
+        case 't5': // Translating WP to Equations
+            c1 = rand(5, 25); c2 = rand(2, 9);
+            if (diff === 'beg') {
+                if (type === 'add') { q = { q: `Translate (Let x = the number): "A number increased by ${c1}"`, a: `x + ${c1}`, opts: [`x + ${c1}`, `${c1}x`, `x - ${c1}`, `x / ${c1}`], rat: '"Increased by" means addition.' }; }
+                else if (type === 'sub') { q = { q: `Translate (Let x = the number): "${c1} less than a number"`, a: `x - ${c1}`, opts: [`x - ${c1}`, `${c1} - x`, `${c1}x`, `x + ${c1}`], rat: '"Less than a number" means you take the number and subtract from it.' }; }
+                else if (type === 'mul') { q = { q: `Translate (Let x = the number): "The product of ${c1} and a number"`, a: `${c1}x`, opts: [`${c1}x`, `x + ${c1}`, `x / ${c1}`, `x - ${c1}`], rat: '"Product" means multiplication.' }; }
+                else { q = { q: `Translate (Let x = the number): "The quotient of a number and ${c2}"`, a: `x / ${c2}`, opts: [`x / ${c2}`, `${c2} / x`, `${c2}x`, `x - ${c2}`], rat: '"Quotient" means division. Order matters.' }; }
+                q.type = 'mcq'; q.choices = q.opts; q.minTime = 15;
+            } else {
+                let ansV = rand(15, 50);
+                if (type === 'consec_sum') { q = { q: `Translate: "The sum of three consecutive integers is ${ansV}."`, a: `x + (x+1) + (x+2) = ${ansV}`, opts: [`x + (x+1) + (x+2) = ${ansV}`, `3x = ${ansV}`, `x + y + z = ${ansV}`, `x + 3 = ${ansV}`], rat: 'Consecutive integers are x, x+1, x+2.' }; }
+                else if (type === 'mul_add') { q = { q: `Translate: "${c1} more than ${c2} times a number is ${ansV}."`, a: `${c2}x + ${c1} = ${ansV}`, opts: [`${c2}x + ${c1} = ${ansV}`, `${c1}x + ${c2} = ${ansV}`, `${c2}(x + ${c1}) = ${ansV}`, `${c2}x - ${c1} = ${ansV}`], rat: 'c times a number is cx, "more than" adds to it.' }; }
+                else if (type === 'mul_sub') { q = { q: `Translate: "${c1} less than ${c2} times a number is ${ansV}."`, a: `${c2}x - ${c1} = ${ansV}`, opts: [`${c2}x - ${c1} = ${ansV}`, `${c1} - ${c2}x = ${ansV}`, `${c2}(x - ${c1}) = ${ansV}`, `${c1}x - ${c2} = ${ansV}`], rat: 'Take cx, then subtract from it for "less than".' }; }
+                else { q = { q: `Translate: "The quotient of ${c2} times a number and 5 is ${ansV}."`, a: `${c2}x / 5 = ${ansV}`, opts: [`${c2}x / 5 = ${ansV}`, `5 / ${c2}x = ${ansV}`, `5x / ${c2} = ${ansV}`, `${c2}(x/5) = ${ansV}`], rat: 'Quotient puts the first part in the numerator.' }; }
+                q.type = 'mcq'; q.choices = q.opts; q.minTime = 25;
+            }
+            break;
+
+        case 't6': // Translating and Solving WP
+            x = rand(6, 20); c1 = rand(3, 15); c2 = rand(2, 6);
+            if (diff === 'beg') {
+                if (type === 'add_solve') { q = { q: `The sum of a number and ${c1} is ${x+c1}. Find the number.`, a: x.toString(), rat: `x + ${c1} = ${x+c1} => x = ${x}.` }; }
+                else if (type === 'sub_solve') { q = { q: `The difference between a number and ${c1} is ${x-c1}. Find the number.`, a: x.toString(), rat: `x - ${c1} = ${x-c1} => Add ${c1} => x = ${x}.` }; }
+                else if (type === 'mul_add_solve') { q = { q: `${c1} more than ${c2} times a number is ${c2*x+c1}. Find the number.`, a: x.toString(), rat: `${c2}x + ${c1} = ${c2*x+c1} => subtract ${c1}, divide by ${c2}.` }; }
+                else { q = { q: `${c1} less than ${c2} times a number is ${c2*x-c1}. Find the number.`, a: x.toString(), rat: `${c2}x - ${c1} = ${c2*x-c1} => add ${c1}, divide by ${c2}.` }; }
+                q.type = 'sa'; q.minTime = 25;
+            } else {
+                q = { type: 'six-step', xAns: x.toString() };
+                if (type === 'consec3') {
+                    let sum = x + (x+1) + (x+2);
+                    q.q = `The sum of three consecutive integers is ${sum}. Find the integers.`;
+                    q.rep = ['the first integer', 'the middle integer', 'the sum']; q.repAns = 'the first integer';
+                    q.eq = [`x + (x+1) + (x+2) = ${sum}`, `3x = ${sum}`, `x + 2x + 3x = ${sum}`]; q.eqAns = `x + (x+1) + (x+2) = ${sum}`;
+                    q.stateLabel = "The 3 integers are (comma separated):"; q.stateAns = `${x}, ${x+1}, ${x+2}`; q.checkAns = sum.toString();
+                    q.rat = `Eq: x + (x+1) + (x+2) = ${sum} -> 3x + 3 = ${sum} -> 3x = ${sum-3} -> x = ${x}. Ints are ${x}, ${x+1}, ${x+2}.`;
+                } else if (type === 'consec2') {
+                    let sum = x + (x+1);
+                    q.q = `The sum of two consecutive integers is ${sum}. Find the integers.`;
+                    q.rep = ['the first integer', 'the sum', 'the difference']; q.repAns = 'the first integer';
+                    q.eq = [`x + (x+1) = ${sum}`, `2x = ${sum}`, `x + x+2 = ${sum}`]; q.eqAns = `x + (x+1) = ${sum}`;
+                    q.stateLabel = "The 2 integers are (comma separated):"; q.stateAns = `${x}, ${x+1}`; q.checkAns = sum.toString();
+                    q.rat = `Eq: x + (x+1) = ${sum} -> 2x + 1 = ${sum} -> 2x = ${sum-1} -> x = ${x}. Ints are ${x}, ${x+1}.`;
+                } else if (type === 'mul_add_6') {
+                    let sum = c2*x + c1;
+                    q.q = `The sum of ${c2} times a number and ${c1} is ${sum}. Find the number.`;
+                    q.rep = ['the number', 'the multiplier', 'the total']; q.repAns = 'the number';
+                    q.eq = [`${c2}x + ${c1} = ${sum}`, `${c1}x + ${c2} = ${sum}`, `${c2}(x + ${c1}) = ${sum}`]; q.eqAns = `${c2}x + ${c1} = ${sum}`;
+                    q.stateLabel = "The number is:"; q.stateAns = x.toString(); q.checkAns = sum.toString();
+                    q.rat = `Eq: ${c2}x + ${c1} = ${sum}. Subtract ${c1}, divide by ${c2}. x = ${x}.`;
+                } else {
+                    let res = c2*x - c1;
+                    q.q = `${c1} subtracted from ${c2} times a number is ${res}. Find the number.`;
+                    q.rep = ['the number', 'the product', 'the difference']; q.repAns = 'the number';
+                    q.eq = [`${c2}x - ${c1} = ${res}`, `${c1} - ${c2}x = ${res}`, `${c2}(x - ${c1}) = ${res}`]; q.eqAns = `${c2}x - ${c1} = ${res}`;
+                    q.stateLabel = "The number is:"; q.stateAns = x.toString(); q.checkAns = res.toString();
+                    q.rat = `Eq: ${c2}x - ${c1} = ${res}. Add ${c1}, divide by ${c2}. x = ${x}.`;
+                }
+                q.minTime = 50;
+            }
+            break;
+
+        case 't7': // Real Life WP
+            x = rand(15, 40);
+            if (diff === 'beg') {
+                q = { type: 'six-step', xAns: x.toString() };
+                let p = rand(15, 100); let cost = rand(100, 500); let earn = p*x - cost;
+                
+                if (type === 'profit_sub' || type === 'drink_profit') {
+                    let item = type === 'profit_sub' ? 'bracelets' : 'lemonade cups';
+                    q.q = `Selling ${item} for ₱${p} each. Materials cost ₱${cost}. How many must be sold to earn exactly ₱${earn}?`;
+                    q.rep = [`number of ${item} sold`, `price per item`, `total cost`]; q.repAns = `number of ${item} sold`;
+                    q.eq = [`${p}x - ${cost} = ${earn}`, `${p}x + ${cost} = ${earn}`, `${cost}x - ${p} = ${earn}`]; q.eqAns = `${p}x - ${cost} = ${earn}`;
+                    q.stateLabel = `Number of ${item}:`; q.stateAns = x.toString(); q.checkAns = earn.toString();
+                    q.rat = `Profit = Income - Cost. ${p}x - ${cost} = ${earn}. Solve for x.`;
+                } else {
+                    let saved = rand(100, 300); let rate = rand(20, 50); let total = saved + rate*x;
+                    q.q = `Mark has ₱${saved}. He saves ₱${rate} per day. After how many days will he have ₱${total}?`;
+                    q.rep = ['number of days', 'amount saved daily', 'total money']; q.repAns = 'number of days';
+                    q.eq = [`${rate}x + ${saved} = ${total}`, `${saved}x + ${rate} = ${total}`, `${rate}x - ${saved} = ${total}`]; q.eqAns = `${rate}x + ${saved} = ${total}`;
+                    q.stateLabel = `Number of days:`; q.stateAns = x.toString(); q.checkAns = total.toString();
+                    q.rat = `Total = initial + (daily * days). ${saved} + ${rate}x = ${total}. Subtract ${saved}, divide by ${rate}.`;
+                }
+                q.minTime = 60;
+            } else {
+                q = { type: 'six-step' };
+                let names = ["David", "Maria", "John", "Sarah"]; let name = names[rand(0,3)];
+                let m = rand(3, 8); // years ago
+                
+                if (type === 'age_twice' || type === 'age_twice_diff') {
+                    let n = rand(5, 12); // years from now
+                    x = n + 2*m; // x+n = 2(x-m)
+                    q.q = `${n} years from now, ${name} will be twice their age ${m} years ago. How old is ${name} now?`;
+                    q.eq = [`x + ${n} = 2(x - ${m})`, `x - ${n} = 2(x + ${m})`, `x + ${n} = x - ${m}`]; q.eqAns = `x + ${n} = 2(x - ${m})`;
+                    q.checkAns = (x+n).toString();
+                    q.rat = `Eq: x+${n} = 2(x-${m}) -> x+${n} = 2x-${2*m} -> x = ${n + 2*m}.`;
+                } else { // thrice
+                    let n = rand(5, 15);
+                    if ((n + 3*m) % 2 !== 0) n++; // ensure integer
+                    x = (n + 3*m) / 2;
+                    q.q = `${n} years from now, ${name} will be three times their age ${m} years ago. How old is ${name} now?`;
+                    q.eq = [`x + ${n} = 3(x - ${m})`, `x - ${n} = 3(x + ${m})`, `x + ${n} = 3x - ${m}`]; q.eqAns = `x + ${n} = 3(x - ${m})`;
+                    q.checkAns = (x+n).toString();
+                    q.rat = `Eq: x+${n} = 3(x-${m}) -> x+${n} = 3x-${3*m} -> 2x = ${n + 3*m} -> x = ${x}.`;
+                }
+                
+                q.rep = [`${name}'s age now`, `${name}'s age later`, `${name}'s age before`]; q.repAns = `${name}'s age now`;
+                q.xAns = x.toString(); q.stateLabel = `${name}'s age now:`; q.stateAns = x.toString();
+                q.minTime = 70;
+            }
+            break;
+    }
+    return q;
+};
+
+
+// ==========================================
+// CORE FUNCTIONS
+// ==========================================
+
+function init() {
+    topics.forEach(t => { if (!progress[t.id]) progress[t.id] = { beg: 0, adv: 0 }; });
+    saveProgress(); renderDashboard();
+}
+
+function saveProgress() { localStorage.setItem('math7Progress', JSON.stringify(progress)); }
+
+function renderDashboard() {
+    document.getElementById('dashboard').style.display = 'flex';
+    document.getElementById('quiz-area').style.display = 'none';
+    document.getElementById('btn-home').style.display = 'none';
+    const dash = document.getElementById('dashboard'); dash.innerHTML = '';
+
+    topics.forEach(t => {
+        const p = progress[t.id];
+        const begCleared = p.beg >= 100; const advCleared = p.adv >= 100;
+        
+        let begBtn = `<button class="btn ${begCleared ? 'btn-completed' : 'btn-primary'}" onclick="startQuiz('${t.id}', 'beg')">Beginner ${begCleared ? '✓' : `(${p.beg}pt)`}</button>`;
+        let advBtn = begCleared ? `<button class="btn ${advCleared ? 'btn-completed' : 'btn-primary'}" onclick="startQuiz('${t.id}', 'adv')">Advanced ${advCleared ? '✓' : `(${p.adv}pt)`}</button>` : `<button class="btn btn-locked" disabled>Advanced 🔒</button>`;
+
+        dash.innerHTML += `
+            <div class="topic-card">
+                <div class="topic-info"><h3>${t.name}</h3><small style="color:var(--text-muted)">${advCleared ? 'Topic Mastered! 🎉' : 'In Progress'}</small></div>
+                <div class="levels">${begBtn} ${advBtn}</div>
+            </div>`;
+    });
+}
+
+function startQuiz(topicId, diff) {
+    currentTopicId = topicId; currentDiff = diff;
+    sessionScore = progress[topicId][diff] >= 100 ? 0 : progress[topicId][diff]; 
+    
+    // Fill the spaced repetition pool with operation sub-types
+    currentPool = shuffle([...typePools[topicId][diff]]);
+
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('quiz-area').style.display = 'block';
+    document.getElementById('btn-home').style.display = 'inline-block';
+    document.getElementById('qh-topic').innerText = topics.find(t=>t.id===topicId).name;
+    document.getElementById('qh-diff').innerText = diff === 'beg' ? 'Beginner' : 'Advanced';
+    
+    updateScoreUI(); nextQuestion();
+}
+
+function goHome() { clearInterval(timerInterval); renderDashboard(); }
+
+function updateScoreUI() {
+    document.getElementById('qh-score').innerText = `Score: ${sessionScore} / 100`;
+    document.getElementById('qh-progress').style.width = `${Math.min(100, sessionScore)}%`;
+}
+
+function nextQuestion() {
+    if (sessionScore >= 100) {
+        progress[currentTopicId][currentDiff] = 100; saveProgress();
+        alert("Congratulations! You have mastered this level!"); goHome(); return;
+    }
+
+    if (currentPool.length === 0) currentPool = shuffle([...typePools[currentTopicId][currentDiff]]); // Refill evenly
+
+    let activeType = currentPool[0]; 
+    currentQuestion = questionFactory(currentTopicId, currentDiff, activeType);
+    currentQuestion.typeKey = activeType;
+
+    document.getElementById('q-text').innerText = currentQuestion.q;
+    const inputArea = document.getElementById('q-input-area'); inputArea.innerHTML = '';
+    
+    document.getElementById('rationale-box').style.display = 'none';
+    document.getElementById('btn-submit').style.display = 'block';
+
+    if (currentQuestion.type === 'mcq') {
+        let grid = document.createElement('div'); grid.className = 'mcq-grid';
+        currentQuestion.choices.forEach(c => {
+            let btn = document.createElement('button'); btn.className = 'mcq-btn'; btn.innerText = c;
+            btn.onclick = () => selectMcq(btn, c); grid.appendChild(btn);
+        });
+        currentQuestion.selectedAns = null; inputArea.appendChild(grid);
+    } 
+    else if (currentQuestion.type === 'sa') {
+        let div = document.createElement('div'); div.className = 'sa-container';
+        div.innerHTML = `<input type="text" id="sa-input" class="sa-input" placeholder="Type answer here" autocomplete="off">`;
+        inputArea.appendChild(div); setTimeout(() => document.getElementById('sa-input').focus(), 100);
+    }
+    else if (currentQuestion.type === 'six-step') {
+        let repOpts = shuffle([...currentQuestion.rep]).map(o => `<option value="${o}">${o}</option>`).join('');
+        let eqOpts = shuffle([...currentQuestion.eq]).map(o => `<option value="${o}">${o}</option>`).join('');
+        
+        inputArea.innerHTML = `
+            <div class="six-step-box">
+                <div class="step-row"><label>1. Representation:</label><div>Let x = <select id="six-rep" class="six-select"><option value="">--Select--</option>${repOpts}</select></div></div>
+                <div class="step-row"><label>2. Equation:</label><div><select id="six-eq" class="six-select"><option value="">--Select equation--</option>${eqOpts}</select></div></div>
+                <div class="step-row"><label>3. Solve for x:</label><div>x = <input type="number" id="six-x" class="six-input" style="width:100px;"></div></div>
+                <div class="step-row"><label>4. State Final Answer:</label><div><span>${currentQuestion.stateLabel}</span> <input type="text" id="six-state" class="six-input" placeholder="e.g. 9, 10" style="flex:1;"></div></div>
+                <div class="step-row"><label>5. Checking (Plug in x):</label><div>Side evaluation equals: <input type="number" id="six-check" class="six-input" style="width:120px;"></div></div>
+            </div>`;
+    }
+
+    timeElapsed = 0; document.getElementById('timer-display').innerText = `Time: 0s`;
+    clearInterval(timerInterval); timerInterval = setInterval(() => {
+        timeElapsed++; document.getElementById('timer-display').innerText = `Time: ${timeElapsed}s`;
+    }, 1000);
+}
+
+function selectMcq(btn, choice) {
+    document.querySelectorAll('.mcq-btn').forEach(b => { b.style.background = 'white'; b.style.color = 'var(--primary)'; });
+    btn.style.background = 'var(--primary)'; btn.style.color = 'white';
+    currentQuestion.selectedAns = choice;
+}
+
+function submitAnswer() {
+    clearInterval(timerInterval); document.getElementById('btn-submit').style.display = 'none';
+    let isCorrect = false;
+
+    if (currentQuestion.type === 'mcq') {
+        if (!currentQuestion.selectedAns) { alert("Select an answer."); startTimerAgain(); return; }
+        isCorrect = currentQuestion.selectedAns === currentQuestion.a;
+    } else if (currentQuestion.type === 'sa') {
+        let val = document.getElementById('sa-input').value;
+        if (!val) { alert("Enter an answer."); startTimerAgain(); return; }
+        isCorrect = cleanAlg(val) === cleanAlg(currentQuestion.a);
+    } else if (currentQuestion.type === 'six-step') {
+        let r = document.getElementById('six-rep').value, e = document.getElementById('six-eq').value;
+        let x = document.getElementById('six-x').value, s = document.getElementById('six-state').value;
+        let c = document.getElementById('six-check').value;
+
+        if(!r || !e || !x || !s || !c) { alert("Fill in all 5 steps."); startTimerAgain(); return; }
+
+        let rOK = r === currentQuestion.repAns; let eOK = cleanAlg(e) === cleanAlg(currentQuestion.eqAns);
+        let xOK = cleanAlg(x) === cleanAlg(currentQuestion.xAns); let sOK = cleanAlg(s) === cleanAlg(currentQuestion.stateAns);
+        let cOK = cleanAlg(c) === cleanAlg(currentQuestion.checkAns);
+
+        isCorrect = rOK && eOK && xOK && sOK && cOK;
+        if (!isCorrect) {
+            let errs = [];
+            if(!rOK) errs.push("Representation"); if(!eOK) errs.push("Equation");
+            if(!xOK) errs.push("Solve for x"); if(!sOK) errs.push("Final Answer"); if(!cOK) errs.push("Checking");
+            currentQuestion.rat = `Mistake in: ${errs.join(', ')}.<br><br>` + currentQuestion.rat;
+        }
+    }
+
+    handleGrading(isCorrect);
+}
+
+function startTimerAgain() {
+    document.getElementById('btn-submit').style.display = 'block';
+    timerInterval = setInterval(() => { timeElapsed++; document.getElementById('timer-display').innerText = `Time: ${timeElapsed}s`; }, 1000);
+}
+
+function handleGrading(isCorrect) {
+    const rBox = document.getElementById('rationale-box'), rStatus = document.getElementById('r-status'), rText = document.getElementById('r-text');
+    rBox.style.display = 'block'; rBox.className = isCorrect ? 'rationale-correct' : 'rationale-wrong';
+    
+    if (isCorrect) {
+        let timeFactor = Math.max(0, 1 - (timeElapsed / currentQuestion.minTime));
+        let points = 16 + Math.round(4 * timeFactor); sessionScore += points; if(sessionScore > 100) sessionScore = 100;
+        
+        currentPool.shift(); // Remove mastered type from pool
+        rStatus.innerText = `Correct! (+${points} pts)`; rText.innerHTML = currentQuestion.rat;
+    } else {
+        let failedType = currentPool.shift(); currentPool.push(failedType); // Send failed type to back of pool (Spaced Repetition)
+        rStatus.innerText = "Incorrect (0 pts)"; rText.innerHTML = currentQuestion.rat;
+    }
+
+    progress[currentTopicId][currentDiff] = sessionScore; saveProgress(); updateScoreUI();
+    document.querySelectorAll('input, select, button.mcq-btn').forEach(el => el.disabled = true);
+}
+
+function handleNext() { nextQuestion(); }
+init();
+</script>
+</body>
+</html>
